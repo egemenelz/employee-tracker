@@ -53,7 +53,7 @@ function prompter() {
                     updateEmployee()
                     break;
                 case 'exit':
-                    console.log('Thank you.. GoodBye!')
+                    console.log('Thank you.. Goodbye!')
                     process.exit();
             }
         })
@@ -61,7 +61,7 @@ function prompter() {
 
 function displayAllDepartments() {
     
-    db.query(sql[0], (err, rows) => {
+    database.query(sql[0], (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -74,7 +74,7 @@ function displayAllDepartments() {
 
 function displayAllRoles() {
 
-    db.query(sql[1], (err, rows) => {
+    database.query(sql[1], (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -86,7 +86,7 @@ function displayAllRoles() {
 }
 
 function displayAllEmployees() {
-    db.query(sql[2], (err, rows) => {
+    database.query(sql[2], (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -116,17 +116,17 @@ function addDepartment() {
             const sql = `INSERT INTO DEPARTMENTS (NAME) VALUES(?)`;
             const param = [input.department];
 
-            db.query(sql, param, (err, result) => {
+            database.query(sql, param, (err, result) => {
                 if (err) {
                     console.log(err)
                 }
-                promptUser();
+                prompter();
             })
         })
 }
 
 const addRole = () => {
-    return db.promise().query(
+    return database.promise().query(
         `SELECT ID, NAME FROM DEPARTMENTS`
     ).then(([departments]) => {
             const departmentInfo = departments.map(({
@@ -168,7 +168,7 @@ const addRole = () => {
                 }
             ])
                 .then(({ role, department, salary }) => {
-                    db.promise().query(
+                    database.promise().query(
                         `INSERT INTO ROLES (TITLE, SALARY, DEPARTMENT_ID) 
                 VALUES (?,?,?)`,
                         [role, salary, department],
@@ -178,18 +178,18 @@ const addRole = () => {
                             }
                         }
                     )
-                    promptUser();
+                    prompter();
                 })
         })
 }
 
 const addEmployee = () => {
-    return db.promise().query(
+    return database.promise().query(
         `SELECT ID, TITLE FROM ROLES`
     )
         .then(([roles]) => {
 
-            db.promise().query(
+            database.promise().query(
                 `SELECT ID, CONCAT(FIRST_NAME, ' ', LAST_NAME) AS MANAGER FROM EMPLOYEES`
             )
                 .then(([manager]) => {
@@ -233,7 +233,7 @@ const addEmployee = () => {
                         }
                     ])
                         .then(({ employeeFirst, employeeLast, roleTitle, manager }) => {
-                            db.promise().query(
+                            database.promise().query(
                                 `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
                     VALUES (?,?,?,?)`,
                                 [employeeFirst, employeeLast, roleTitle, manager],
@@ -243,19 +243,19 @@ const addEmployee = () => {
                                     }
                                 }
                             )
-                            promptUser();
+                            prompter();
                         })
                 })
         })
 }
 
 const updateEmployee = () => {
-    return db.promise().query(
+    return database.promise().query(
         `SELECT E.id, CONCAT(E.first_name, ' ', E.last_name) AS employee FROM employees E`
     )
         .then(([employees]) => {
 
-            db.promise().query(
+            database.promise().query(
                 `SELECT roles.id, roles.title FROM roles`
             )
                 .then(([roles]) => {
@@ -275,7 +275,7 @@ const updateEmployee = () => {
                         }
                     ])
                         .then(({ employee, updatedRole }) => {
-                            db.promise().query(
+                            database.promise().query(
                                 `UPDATE employees SET role_id = ?
                     WHERE id = ?`,
                                 [updatedRole, employee],
@@ -285,7 +285,7 @@ const updateEmployee = () => {
                                     }
                                 }
                             )
-                            promptUser();
+                            prompter();
                         })
                 })
         })
