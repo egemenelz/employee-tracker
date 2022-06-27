@@ -59,4 +59,4 @@ For contribution, you can reach me out github.
 
 Any addittional questions, You can reach me at https://github.com/egemenelz
 
-For Full Video -> https://drive.google.com/file/d/1tET68UT-JniQKLfJrIPMeeZvVU9Ep-bP/view
+* [For Full Video](https://drive.google.com/file/d/1W0OnQq_QCCt0fgzoCEHSzri5UM0LTfV0/view)
