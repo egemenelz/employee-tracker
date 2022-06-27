@@ -60,7 +60,7 @@ function prompter() {
 }
 
 function displayAllDepartments() {
-    
+
     database.query(sql[0], (err, rows) => {
         if (err) {
             throw err;
@@ -97,198 +97,196 @@ function displayAllEmployees() {
     })
 }
 
-function addDepartment() {
-    return inquirer.prompt([
+async function addDepartment() {
+    const input = await inquirer.prompt([
         {
             type: 'input',
             name: 'department',
             message: "What is the name of department you want to add?",
-            validate: answer => {
-                if (!answer) {
-                    console.log("Please enter name of the department!!")
+            validate: answer_1 => {
+                if (!answer_1) {
+                    console.log("Please enter name of the department!!");
                     return false;
                 }
                 return true;
             }
         }
-    ])
-        .then(input => {
-            const sql = `INSERT INTO DEPARTMENTS (NAME) VALUES(?)`;
-            const param = [input.department];
-
-            database.query(sql, param, (err, result) => {
-                if (err) {
-                    console.log(err)
-                }
-                prompter();
-            })
-        })
+    ]);
+    const sql = `INSERT INTO DEPARTMENTS (NAME) VALUES(?)`;
+    const param = [input.department];
+    database.query(sql, param, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        prompter();
+    });
 }
 
 const addRole = () => {
     return database.promise().query(
         `SELECT ID, NAME FROM DEPARTMENTS`
-    ).then(([departments]) => {
-            const departmentInfo = departments.map(({
-                id, name
-            }) => ({
-                name:name,
-                value:id
-            }))
-            inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'role',
-                    message: "What is the role you want to add?",
-                    validate: answer => {
-                        if (!answer) {
-                            console.log("Please enter role!!")
-                            return false;
-                        }
-                        return true;
+    ).then(([DEPARTMENTS]) => {
+        const departmentInfo = DEPARTMENTS.map(({
+            id, name
+        }) => ({
+            name: name,
+            value: id
+        }))
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'role',
+                message: "What is the role you want to add?",
+                validate: answer => {
+                    if (!answer) {
+                        console.log("Please enter role!!")
+                        return false;
                     }
-                },
-                {
-                    type: 'list',
-                    name: 'department',
-                    message: 'What department does this role belong in?',
-                    choices: departmentInfo
-                },
-                {
-                    type: 'input',
-                    name: 'salary',
-                    message: 'What is the salary of the role?',
-                    validate: answer => {
-                        if (!answer) {
-                            console.log("Please enter salary of the role!!")
-                            return false;
-                        }
-                        return true;
-                    }
+                    return true;
                 }
-            ])
-                .then(({ role, department, salary }) => {
-                    database.promise().query(
-                        `INSERT INTO ROLES (TITLE, SALARY, DEPARTMENT_ID) 
+            },
+            {
+                type: 'list',
+                name: 'department',
+                message: 'What department does this role belong in?',
+                choices: departmentInfo
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'What is the salary of the role?',
+                validate: answer => {
+                    if (!answer) {
+                        console.log("Please enter salary of the role!!")
+                        return false;
+                    }
+                    return true;
+                }
+            }
+        ])
+            .then(({ role, department, salary }) => {
+                database.promise().query(
+                    `INSERT INTO ROLES (TITLE, SALARY, DEPARTMENT_ID) 
                 VALUES (?,?,?)`,
-                        [role, salary, department],
-                        (err, result) => {
-                            if (err) {
-                                console.log(err)
-                            }
+                    [role, salary, department],
+                    (err, result) => {
+                        if (err) {
+                            console.log(err)
                         }
-                    )
-                    prompter();
-                })
-        })
+                    }
+                )
+                prompter();
+            })
+    })
 }
+// I have try to do it but I couldn't successfull, I will update this part later...
 
-const addEmployee = () => {
-    return database.promise().query(
-        `SELECT ID, TITLE FROM ROLES`
-    )
-        .then(([roles]) => {
+// const addEmployee = () => {
+//     return database.promise().query(
+//         `SELECT ID, TITLE FROM ROLES`
+//     )
+//         .then(({roles}) => {
 
-            database.promise().query(
-                `SELECT ID, CONCAT(FIRST_NAME, ' ', LAST_NAME) AS MANAGER FROM EMPLOYEES`
-            )
-                .then(([manager]) => {
+//             database.promise().query(
+//                 `SELECT ID, CONCAT(FIRST_NAME, ' ', LAST_NAME) AS MANAGER FROM EMPLOYEES`
+//             )
+//                 .then(([manager]) => {
 
-                    inquirer.prompt([
-                        {
-                            type: 'input',
-                            name: 'employeeFirst',
-                            message: 'Enter Employee First Name?',
-                            validate: answer => {
-                                if (!answer) {
-                                    console.log("Please enter salary of the role!!")
-                                    return false;
-                                }
-                                return true;
-                            }
-                        },
-                        {
-                            type: 'input',
-                            name: 'employeeLast',
-                            message: 'Enter Employee Last Name?',
-                            validate: answer => {
-                                if (!answer) {
-                                    console.log("Please enter salary of the role!!")
-                                    return false;
-                                }
-                                return true;
-                            }
-                        },
-                        {
-                            type: 'list',
-                            name: 'roleTitle',
-                            message: 'What role is the employee taking?',
-                            choices: [roles.title]
-                        },
-                        {
-                            type: 'list',
-                            name: 'manager',
-                            message: "Who will be this new employee's manager?",
-                            choices: [manager.name]
-                        }
-                    ])
-                        .then(({ employeeFirst, employeeLast, roleTitle, manager }) => {
-                            database.promise().query(
-                                `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
-                    VALUES (?,?,?,?)`,
-                                [employeeFirst, employeeLast, roleTitle, manager],
-                                (err, result) => {
-                                    if (err) {
-                                        console.log(err)
-                                    }
-                                }
-                            )
-                            prompter();
-                        })
-                })
-        })
-}
+//                     inquirer.prompt([
+//                         {
+//                             type: 'input',
+//                             name: 'employeeFirst',
+//                             message: 'Enter Employee First Name?',
+//                             validate: answer => {
+//                                 if (!answer) {
+//                                     console.log("Please enter salary of the role!!")
+//                                     return false;
+//                                 }
+//                                 return true;
+//                             }
+//                         },
+//                         {
+//                             type: 'input',
+//                             name: 'employeeLast',
+//                             message: 'Enter Employee Last Name?',
+//                             validate: answer => {
+//                                 if (!answer) {
+//                                     console.log("Please enter salary of the role!!")
+//                                     return false;
+//                                 }
+//                                 return true;
+//                             }
+//                         },
+//                         {
+//                             type: 'list',
+//                             name: 'roleTitle',
+//                             message: 'What role is the employee taking?',
+//                             choices: [roles.title]
+//                         },
+//                         {
+//                             type: 'list',
+//                             name: 'manager',
+//                             message: "Who will be this new employee's manager?",
+//                             choices: [manager.name]
+//                         }
+//                     ])
+//                         .then(({ employeeFirst, employeeLast, roleTitle, manager }) => {
+//                             database.promise().query(
+//                                 `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
+//                     VALUES (?,?,?,?)`,
+//                                 [employeeFirst, employeeLast, roleTitle, manager],
+//                                 (err, result) => {
+//                                     if (err) {
+//                                         console.log(err)
+//                                     }
+//                                 }
+//                             )
+//                             prompter();
+//                         })
+//                 })
+//         })
+// }
 
-const updateEmployee = () => {
-    return database.promise().query(
-        `SELECT E.id, CONCAT(E.first_name, ' ', E.last_name) AS employee FROM employees E`
-    )
-        .then(([employees]) => {
+// const updateEmployee = () => {
+//     return database.promise().query(
+//         `SELECT E.id, CONCAT(E.first_name, ' ', E.last_name) AS employee FROM employees E`
+//     )
+//         .then(([employees]) => {
 
-            database.promise().query(
-                `SELECT roles.id, roles.title FROM roles`
-            )
-                .then(([roles]) => {
+//             database.promise().query(
+//                 `SELECT roles.id, roles.title FROM roles`
+//             )
+//                 .then(([roles]) => {
 
-                    inquirer.prompt([
-                        {
-                            type: 'list',
-                            name: 'employee',
-                            message: 'Which employee would you like to update?',
-                            choices: [employees.name]
-                        },
-                        {
-                            type: 'list',
-                            name: 'updatedRole',
-                            message: 'What role will they be taking?',
-                            choices: [roles.title]
-                        }
-                    ])
-                        .then(({ employee, updatedRole }) => {
-                            database.promise().query(
-                                `UPDATE employees SET role_id = ?
-                    WHERE id = ?`,
-                                [updatedRole, employee],
-                                (err, result) => {
-                                    if (err) {
-                                        console.log(err)
-                                    }
-                                }
-                            )
-                            prompter();
-                        })
-                })
-        })
-}
+//                     inquirer.prompt([
+//                         {
+//                             type: 'list',
+//                             name: 'employee',
+//                             message: 'Which employee would you like to update?',
+//                             choices: [employees.name]
+//                         },
+//                         {
+//                             type: 'list',
+//                             name: 'updatedRole',
+//                             message: 'What role will they be taking?',
+//                             choices: [roles.title]
+//                         }
+//                     ])
+//                         .then(({ employee, updatedRole }) => {
+//                             database.promise().query(
+//                                 `UPDATE employees SET role_id = ?
+//                     WHERE id = ?`,
+//                                 [updatedRole, employee],
+//                                 (err, result) => {
+//                                     if (err) {
+//                                         console.log(err)
+//                                     }
+//                                 }
+//                             )
+//                             prompter();
+//                         })
+//                 })
+//         })
+// }
 
 prompter();
